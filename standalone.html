@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Akwaaba AI - Learn AI Simply</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- React & Babel for Standalone -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <script type="importmap">
+    {
+      "imports": {
+        "react": "https://esm.sh/react@19.0.0",
+        "react-dom": "https://esm.sh/react-dom@19.0.0",
+        "react-dom/client": "https://esm.sh/react-dom@19.0.0/client",
+        "@google/genai": "https://esm.sh/@google/genai@1.34.0"
+      }
+    }
+    </script>
+
+    <style>
+      :root {
+        --color-orange-50: #fff7ed;
+        --color-orange-100: #ffedd5;
+        --color-orange-200: #fed7aa;
+        --color-orange-400: #fb923c;
+        --color-orange-500: #f97316;
+        --color-green-50: #f0fdf4;
+        --color-green-200: #bbf7d0;
+        --color-green-600: #16a34a;
+        --color-green-700: #15803d;
+        --color-green-800: #166534;
+        --color-red-50: #fef2f2;
+        --color-red-500: #ef4444;
+        --color-red-700: #b91c1c;
+        --color-gray-50: #f9fafb;
+        --color-gray-100: #f3f4f6;
+        --color-gray-200: #e5e7eb;
+        --color-gray-400: #9ca3af;
+        --color-gray-600: #4b5563;
+        --color-gray-800: #1f2937;
+        
+        --font-body: 'Outfit', sans-serif;
+        --font-heading: 'Fredoka', sans-serif;
+        
+        --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      }
+
+      /* Base Styles */
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+
+      body {
+        font-family: var(--font-body);
+        background-color: var(--color-orange-50);
+        color: var(--color-gray-800);
+        line-height: 1.5;
+        min-height: 100vh;
+      }
+
+      h1, h2, h3, .font-heading {
+        font-family: var(--font-heading);
+      }
+
+      /* Layout Components */
+      .app-wrapper {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 1rem;
+      }
+
+      .main-content {
+        width: 100%;
+        max-width: 640px;
+        margin-top: 5rem;
+        margin-bottom: 2rem;
+      }
+
+      .header {
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        background: white;
+        border-bottom: 4px solid var(--color-orange-400);
+        padding: 1rem;
+        z-index: 50;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      /* UI Elements */
+      .logo-container {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .logo-dot {
+        width: 2rem;
+        height: 2rem;
+        border-radius: 9999px;
+        border: 2px solid black;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 0.75rem;
+      }
+
+      .logo-dot.red { background: var(--color-red-500); color: white; }
+      .logo-dot.orange { background: var(--color-orange-400); color: black; }
+      .logo-dot.green { background: var(--color-green-600); color: white; }
+
+      .btn-exit {
+        font-size: 0.875rem;
+        font-weight: bold;
+        color: var(--color-red-500);
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        border: 2px solid var(--color-red-500);
+        background: transparent;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .btn-exit:hover { background: var(--color-red-50); }
+
+      .card {
+        background: white;
+        border-radius: 1.5rem;
+        border: 4px solid var(--color-orange-400);
+        box-shadow: var(--shadow);
+        padding: 2rem;
+        text-align: center;
+      }
+
+      .btn-primary {
+        width: 100%;
+        background: var(--color-green-600);
+        color: white;
+        font-weight: bold;
+        font-size: 1.25rem;
+        padding: 1rem;
+        border-radius: 1rem;
+        border: none;
+        border-bottom: 8px solid var(--color-green-800);
+        cursor: pointer;
+        transition: all 0.2s;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      }
+
+      .btn-primary:hover { background: var(--color-green-700); transform: translateY(-2px); }
+      .btn-primary:active { border-bottom-width: 0; transform: translateY(6px); }
+
+      /* Chat Styles */
+      .chat-window {
+        width: 100%;
+        height: 75vh;
+        background: white;
+        border-radius: 1.5rem;
+        border: 4px solid var(--color-orange-400);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        box-shadow: var(--shadow);
+      }
+
+      .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .chat-bubble {
+        max-width: 85%;
+        padding: 1rem;
+        border-radius: 1rem;
+        border: 2px solid;
+        font-size: 0.95rem;
+      }
+
+      .chat-bubble.user {
+        align-self: flex-end;
+        background: var(--color-orange-400);
+        border-color: var(--color-orange-500);
+        border-top-right-radius: 0;
+      }
+
+      .chat-bubble.ai {
+        align-self: flex-start;
+        background: var(--color-green-50);
+        border-color: var(--color-green-200);
+        border-top-left-radius: 0;
+      }
+
+      .chat-input-area {
+        padding: 1rem;
+        background: white;
+        border-top: 4px solid var(--color-orange-400);
+      }
+
+      .input-group {
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .text-input {
+        flex: 1;
+        background: var(--color-gray-50);
+        border: 2px solid var(--color-gray-200);
+        padding: 0.75rem 1rem;
+        border-radius: 0.75rem;
+        outline: none;
+      }
+
+      .text-input:focus { border-color: var(--color-green-600); }
+
+      .btn-send {
+        background: var(--color-red-500);
+        color: white;
+        padding: 0.75rem;
+        border-radius: 0.75rem;
+        border: none;
+        border-bottom: 4px solid var(--color-red-700);
+        cursor: pointer;
+      }
+
+      .btn-send:active { border-bottom-width: 0; transform: translateY(4px); }
+
+      /* Animations */
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      .animate-fade { animation: fadeIn 0.5s ease-out forwards; }
+
+      /* Responsive Adjustments */
+      @media (max-width: 480px) {
+        .main-content { padding: 0 0.5rem; }
+        .card { padding: 1.5rem 1rem; }
+      }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel" data-type="module">
+      import React, { useState, useEffect, useRef } from 'react';
+      import ReactDOM from 'react-dom/client';
+      import { GoogleGenAI, Type } from '@google/genai';
+
+      // --- Services & Logic ---
+      const MODEL_NAME = 'gemini-3-flash-preview';
+      const API_KEY = ""; // This would be populated or handled by the environment
+
+      const getGeminiResponse = async (history) => {
+        const key = window.process?.env?.GEMINI_API_KEY || API_KEY;
+        if (!key) return "Wait, I need my AI key to think! (Ask the teacher for help).";
+        
+        const ai = new GoogleGenAI({ apiKey: key });
+        const systemInstruction = `
+          You are 'Vera', a friendly AI tutor for Ghanaian students aged 11-14. 
+          Explain Artificial Intelligence using simple English and local examples.
+          Relatable examples: WhatsApp word prediction, TikTok videos, Google Maps traffic on Spintex Road, cocoa farming leaf disease detection, video game movement.
+          Avoid jargon. Keep responses short (under 100 words). Be encouraging and use 'Akwaaba' or 'Charlie' occasionally.
+        `;
+
+        const contents = history.map(msg => ({
+          role: msg.role === 'user' ? 'user' : 'model',
+          parts: [{ text: msg.text }]
+        }));
+
+        try {
+          const response = await ai.models.generateContent({
+            model: MODEL_NAME,
+            contents: contents,
+            config: { systemInstruction, temperature: 0.7 }
+          });
+          return response.text || "I'm sorry, I couldn't think of an answer. Can you ask again?";
+        } catch (error) {
+          console.error("Gemini API Error:", error);
+          return "Oh no, my internet is acting like a trotro in traffic! Please try again.";
+        }
+      };
+
+      const generateQuizQuestions = async () => {
+        const key = window.process?.env?.GEMINI_API_KEY || API_KEY;
+        if (!key) {
+           return [
+            { id: 1, question: "What is AI?", options: ["A robot that eats food", "A computer that learns", "A magic box"], correctAnswer: "A computer that learns", explanation: "AI helps computers solve problems!" }
+          ];
+        }
+
+        const ai = new GoogleGenAI({ apiKey: key });
+        const prompt = "Generate 3 simple multiple-choice questions about AI for Ghanaian kids aged 11-14. Use local examples. Return as JSON array.";
+
+        try {
+          const response = await ai.models.generateContent({
+            model: MODEL_NAME,
+            contents: prompt,
+            config: {
+              responseMimeType: "application/json",
+              responseSchema: {
+                type: Type.ARRAY,
+                items: {
+                  type: Type.OBJECT,
+                  properties: {
+                    id: { type: Type.INTEGER },
+                    question: { type: Type.STRING },
+                    options: { type: Type.ARRAY, items: { type: Type.STRING } },
+                    correctAnswer: { type: Type.STRING },
+                    explanation: { type: Type.STRING }
+                  },
+                  required: ["id", "question", "options", "correctAnswer", "explanation"]
+                }
+              }
+            }
+          });
+          return JSON.parse(response.text || "[]");
+        } catch (error) {
+          console.error("Quiz Error:", error);
+          return [
+            { id: 1, question: "What is AI?", options: ["A robot that eats food", "A computer that learns", "A magic box"], correctAnswer: "A computer that learns", explanation: "AI helps computers solve problems!" }
+          ];
+        }
+      };
+
+      // --- Components ---
+
+      const WelcomeScreen = ({ onStart }) => (
+        <div className="animate-fade" style={{textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '2rem'}}>
+          <div style={{position: 'relative', display: 'inline-block'}}>
+            <img src="https://picsum.photos/id/1/400/300" alt="Happy student" style={{borderRadius: '1.5rem', border: '8px solid var(--color-orange-400)', boxShadow: 'var(--shadow)', maxWidth: '100%'}} />
+            <div style={{position: 'absolute', bottom: '-1rem', right: '-1rem', background: 'var(--color-red-500)', color: 'white', padding: '1rem', borderRadius: '1rem', border: '4px solid black', fontWeight: 'bold', fontSize: '1.125rem', transform: 'rotate(3deg)', boxShadow: 'var(--shadow)'}}>Akwaaba! 👋</div>
+          </div>
+          <div style={{display: 'flex', flexDirection: 'column', gap: '1rem'}}>
+            <h2 style={{fontSize: '2.25rem', fontWeight: 'bold', color: '#1f2937', lineHeight: '1.2'}}>Discover the Magic of <span style={{color: 'var(--color-green-600)'}}>AI</span> in Ghana!</h2>
+            <p style={{fontSize: '1.125rem', color: '#4b5563', padding: '0 1rem'}}>Meet <b>Vera</b>, your friendly AI tutor. He will show you how AI helps us every day!</p>
+          </div>
+          <div style={{padding: '0 2rem'}}><button onClick={onStart} className="btn-primary">Let's Start Learning! 🚀</button></div>
+          <div style={{display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', paddingTop: '1rem', opacity: 0.6}}>
+            <div><div style={{fontSize: '1.5rem'}}>💬</div><span style={{fontSize: '0.625rem', fontWeight: 'bold', textTransform: 'uppercase'}}>Chat</span></div>
+            <div><div style={{fontSize: '1.5rem'}}>💡</div><span style={{fontSize: '0.625rem', fontWeight: 'bold', textTransform: 'uppercase'}}>Learn</span></div>
+            <div><div style={{fontSize: '1.5rem'}}>🏆</div><span style={{fontSize: '0.625rem', fontWeight: 'bold', textTransform: 'uppercase'}}>Quiz</span></div>
+          </div>
+        </div>
+      );
+
+      const ChatSection = ({ onStartQuiz }) => {
+        const [messages, setMessages] = useState([{ role: 'model', text: "Akwaaba! I am Vera. Ask me anything about AI!" }]);
+        const [inputValue, setInputValue] = useState('');
+        const [isTyping, setIsTyping] = useState(false);
+        const scrollRef = useRef(null);
+
+        useEffect(() => { if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight; }, [messages, isTyping]);
+
+        const handleSend = async () => {
+          if (!inputValue.trim()) return;
+          const userMsg = { role: 'user', text: inputValue };
+          setMessages(prev => [...prev, userMsg]);
+          setInputValue('');
+          setIsTyping(true);
+          const aiResponse = await getGeminiResponse([...messages, userMsg]);
+          setIsTyping(false);
+          setMessages(prev => [...prev, { role: 'model', text: aiResponse }]);
+        };
+
+        return (
+          <div className="chat-window animate-fade">
+            <div ref={scrollRef} className="chat-messages">
+              {messages.map((msg, idx) => (
+                <div key={idx} className={`chat-bubble ${msg.role === 'user' ? 'user' : 'ai'}`}><p>{msg.text}</p></div>
+              ))}
+              {isTyping && <div className="chat-bubble ai" style={{display: 'flex', gap: '4px'}}><span style={{width: '6px', height: '6px', background: '#9ca3af', borderRadius: '50%'}}></span><span style={{width: '6px', height: '6px', background: '#9ca3af', borderRadius: '50%'}}></span><span style={{width: '6px', height: '6px', background: '#9ca3af', borderRadius: '50%'}}></span></div>}
+            </div>
+            <div className="chat-input-area">
+              <div className="input-group">
+                <input type="text" value={inputValue} onChange={(e) => setInputValue(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && handleSend()} placeholder="Ask Vera about AI..." className="text-input" />
+                <button onClick={handleSend} disabled={!inputValue.trim() || isTyping} className="btn-send">
+                  <svg style={{width: '24px', height: '24px'}} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
+                </button>
+              </div>
+              {messages.length >= 3 && <button onClick={onStartQuiz} style={{width: '100%', marginTop: '0.75rem', padding: '0.5rem', background: 'var(--color-green-600)', color: 'white', border: 'none', borderBottom: '4px solid var(--color-green-800)', borderRadius: '0.75rem', fontWeight: 'bold', cursor: 'pointer'}}>I'm Ready for the Quiz! 🎓</button>}
+            </div>
+          </div>
+        );
+      };
+
+      const QuizSection = ({ onComplete }) => {
+        const [loading, setLoading] = useState(true);
+        const [quizState, setQuizState] = useState({ questions: [], currentQuestionIndex: 0, score: 0, selectedAnswers: [], isFinished: false });
+        const [feedback, setFeedback] = useState(null);
+
+        useEffect(() => { const init = async () => { const q = await generateQuizQuestions(); setQuizState(p => ({ ...p, questions: q })); setLoading(false); }; init(); }, []);
+
+        const handleAnswerSelection = (answer) => {
+          if (feedback) return;
+          const currentQ = quizState.questions[quizState.currentQuestionIndex];
+          const isCorrect = answer === currentQ.correctAnswer;
+          setFeedback({ isCorrect, message: isCorrect ? "Super! 🎉" : `Almost! It was: ${currentQ.correctAnswer}` });
+          setQuizState(p => ({ ...p, score: isCorrect ? p.score + 1 : p.score, selectedAnswers: [...p.selectedAnswers, answer] }));
+        };
+
+        const nextQuestion = () => {
+          setFeedback(null);
+          if (quizState.currentQuestionIndex === quizState.questions.length - 1) setQuizState(p => ({ ...p, isFinished: true }));
+          else setQuizState(p => ({ ...p, currentQuestionIndex: p.currentQuestionIndex + 1 }));
+        };
+
+        if (loading) return <div style={{textAlign: 'center', padding: '3rem'}}><p>Loading Quiz...</p></div>;
+
+        if (quizState.isFinished) return (
+          <div className="card animate-fade">
+            <h2>Result: {quizState.score} / {quizState.questions.length}</h2>
+            <button onClick={onComplete} className="btn-primary" style={{marginTop: '1rem'}}>Finish</button>
+          </div>
+        );
+
+        const currentQ = quizState.questions[quizState.currentQuestionIndex];
+        return (
+          <div className="card animate-fade" style={{textAlign: 'left'}}>
+            <h3>{currentQ.question}</h3>
+            <div style={{display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1rem'}}>
+              {currentQ.options.map((opt, i) => (
+                <button key={i} onClick={() => handleAnswerSelection(opt)} disabled={!!feedback} style={{padding: '1rem', borderRadius: '0.75rem', border: '2px solid var(--color-orange-200)', background: 'white'}}>{opt}</button>
+              ))}
+            </div>
+            {feedback && <div style={{marginTop: '1rem'}}><p>{feedback.message}</p><button onClick={nextQuestion} className="btn-primary" style={{fontSize: '1rem', padding: '0.5rem'}}>Next</button></div>}
+          </div>
+        );
+      };
+
+      // --- App Root ---
+      const App = () => {
+        const [view, setView] = useState('WELCOME');
+        return (
+          <div className="app-wrapper">
+            <header className="header">
+              <div className="logo-container">
+                <div className="logo-dot red">G</div>
+                <div className="logo-dot orange">A</div>
+                <div className="logo-dot green">I</div>
+                <h1 style={{fontSize: '1.25rem', marginLeft: '0.25rem'}}>Akwaaba AI</h1>
+              </div>
+              {view !== 'WELCOME' && <button onClick={() => setView('WELCOME')} className="btn-exit">Exit</button>}
+            </header>
+            <main className="main-content">
+              {view === 'WELCOME' && <WelcomeScreen onStart={() => setView('CHAT')} />}
+              {view === 'CHAT' && <ChatSection onStartQuiz={() => setView('QUIZ')} />}
+              {view === 'QUIZ' && <QuizSection onComplete={() => setView('WELCOME')} />}
+            </main>
+          </div>
+        );
+      };
+
+      const root = ReactDOM.createRoot(document.getElementById('root'));
+      root.render(<App />);
+    </script>
+</body>
+</html>
